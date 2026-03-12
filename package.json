@@ -1,0 +1,43 @@
+{
+  "name": "@postcli/substack",
+  "version": "0.1.0",
+  "description": "Substack CLI and MCP Server - read posts, publish notes, manage your Substack from the terminal",
+  "type": "module",
+  "license": "AGPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/postcli/substack.git"
+  },
+  "homepage": "https://github.com/postcli/substack",
+  "bugs": "https://github.com/postcli/substack/issues",
+  "keywords": ["substack", "cli", "mcp", "notes", "publishing"],
+  "bin": {
+    "postcli-substack": "./dist/cli/index.js"
+  },
+  "files": ["dist", "README.md", "LICENSE"],
+  "scripts": {
+    "build": "tsc",
+    "cli": "tsx src/cli/index.ts",
+    "mcp": "tsx src/mcp/index.ts",
+    "dev:mcp": "npx @modelcontextprotocol/inspector tsx src/mcp/index.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "better-sqlite3": "^12.6.2",
+    "chalk": "^5.4.1",
+    "commander": "^13.1.0",
+    "dotenv": "^16.5.0",
+    "substack-api": "^3.2.0",
+    "zod": "^3.25.67"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^22.15.0",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  }
+}

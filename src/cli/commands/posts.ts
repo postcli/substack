@@ -1,0 +1,58 @@
+import { Command } from 'commander';
+import chalk from 'chalk';
+import { getClient, collectAsync } from '../../client.js';
+import { formatPost, separator } from '../formatters.js';
+
+export const postsCommand = new Command('posts').description('Manage posts');
+
+postsCommand
+  .command('list')
+  .description('List posts from a publication')
+  .option('-l, --limit <n>', 'Number of posts', '10')
+  .option('-s, --slug <slug>', 'Profile slug (defaults to own profile)')
+  .action(async (opts) => {
+    try {
+      const client = getClient();
+      const limit = parseInt(opts.limit);
+      let profile;
+      if (opts.slug) {
+        profile = await client.profileForSlug(opts.slug);
+      } else {
+        profile = await client.ownProfile();
+      }
+      const posts = await collectAsync(profile.posts({ limit }), limit);
+      if (posts.length === 0) {
+        console.log(chalk.dim('No posts found.'));
+        return;
+      }
+      for (const post of posts) {
+        console.log(formatPost(post));
+        console.log(separator());
+      }
+      console.log(chalk.dim(`${posts.length} post(s)`));
+    } catch (err: any) {
+      console.error(chalk.red(`Error: ${err.message}`));
+      process.exit(1);
+    }
+  });
+
+postsCommand
+  .command('get <id>')
+  .description('Get full post by ID')
+  .action(async (id) => {
+    try {
+      const client = getClient();
+      const post = await client.postForId(parseInt(id));
+      console.log(chalk.bold(post.title));
+      if (post.subtitle) console.log(chalk.dim(post.subtitle));
+      console.log(chalk.gray(`Published: ${post.publishedAt.toLocaleDateString()}`));
+      console.log(chalk.gray(`URL: ${post.url}`));
+      if (post.postTags?.length) console.log(chalk.gray(`Tags: ${post.postTags.join(', ')}`));
+      if (post.reactions) console.log(chalk.gray(`Reactions: ${JSON.stringify(post.reactions)}`));
+      console.log(separator());
+      console.log(post.markdown || post.htmlBody || post.body);
+    } catch (err: any) {
+      console.error(chalk.red(`Error: ${err.message}`));
+      process.exit(1);
+    }
+  });
