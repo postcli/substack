@@ -1,6 +1,12 @@
+<div align="center">
+
+<img src="logo.png" alt="postcli substack" width="80" />
+
 # @postcli/substack
 
 Substack CLI and MCP Server. Read posts, publish notes, manage your Substack from the terminal.
+
+</div>
 
 > **Disclaimer:** This is an unofficial tool, not affiliated with or endorsed by Substack. It uses undocumented APIs that may change without notice. Use at your own risk.
 
