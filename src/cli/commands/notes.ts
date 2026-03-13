@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { getClient, collectAsync } from '../../client.js';
+import { getClient, collectAsync, parsePositiveInt } from '../../client.js';
 import { formatNote, separator } from '../formatters.js';
 
 export const notesCommand = new Command('notes').description('Manage notes');
@@ -13,7 +13,7 @@ notesCommand
   .action(async (opts) => {
     try {
       const client = getClient();
-      const limit = parseInt(opts.limit);
+      const limit = parsePositiveInt(opts.limit, 'limit');
       let profile;
       if (opts.slug) {
         profile = await client.profileForSlug(opts.slug);
@@ -42,10 +42,11 @@ notesCommand
   .action(async (id) => {
     try {
       const client = getClient();
-      const note = await client.noteForId(parseInt(id));
+      const noteId = parsePositiveInt(id, 'note ID');
+      const note = await client.noteForId(noteId);
       console.log(`${chalk.cyan(`@${note.author.handle}`)} ${chalk.gray(note.publishedAt.toLocaleDateString())}`);
       console.log(note.body);
-      console.log(`\n${chalk.red('♥')} ${note.likesCount}`);
+      console.log(`\nLikes: ${note.likesCount}`);
     } catch (err: any) {
       console.error(chalk.red(`Error: ${err.message}`));
       process.exit(1);

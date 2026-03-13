@@ -7,16 +7,24 @@ import { commentsCommand } from './commands/comments.js';
 import { profileCommand } from './commands/profile.js';
 import { socialCommand } from './commands/social.js';
 
-const program = new Command()
-  .name('postcli-substack')
-  .description('Substack CLI and MCP Server')
-  .version('0.1.0');
+// Handle --mcp before commander parses (MCP server stays alive, no subcommand needed)
+if (process.argv.includes('--mcp')) {
+  import('../mcp/index.js').then(({ startMcpServer }) => startMcpServer()).catch((err) => {
+    console.error('MCP server failed:', err);
+    process.exit(1);
+  });
+} else {
+  const program = new Command()
+    .name('postcli-substack')
+    .description('Substack CLI and MCP Server')
+    .version(process.env.npm_package_version || '0.1.0');
 
-program.addCommand(authCommand);
-program.addCommand(postsCommand);
-program.addCommand(notesCommand);
-program.addCommand(commentsCommand);
-program.addCommand(profileCommand);
-program.addCommand(socialCommand);
+  program.addCommand(authCommand);
+  program.addCommand(postsCommand);
+  program.addCommand(notesCommand);
+  program.addCommand(commentsCommand);
+  program.addCommand(profileCommand);
+  program.addCommand(socialCommand);
 
-program.parse();
+  program.parse();
+}

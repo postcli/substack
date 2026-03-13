@@ -1,9 +1,7 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { createClient, getClient } from '../../client.js';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, chmodSync } from 'fs';
+import { createClient, getClient, getConfigDir, getEnvPath } from '../../client.js';
 import { grabSubstackCookies } from '../chrome-cookies.js';
 import readline from 'readline';
 
@@ -12,14 +10,12 @@ function ask(question: string): Promise<string> {
   return new Promise((res) => rl.question(question, (answer) => { rl.close(); res(answer.trim()); }));
 }
 
-function getProjectRoot(): string {
-  const __filename = fileURLToPath(import.meta.url);
-  // src/cli/commands/auth.ts -> project root (3 levels up)
-  return resolve(dirname(__filename), '..', '..', '..');
-}
-
 function saveCredentials(token: string, publicationUrl: string) {
-  const envPath = resolve(getProjectRoot(), '.env');
+  const configDir = getConfigDir();
+  if (!existsSync(configDir)) {
+    mkdirSync(configDir, { recursive: true, mode: 0o700 });
+  }
+  const envPath = getEnvPath();
   let envContent = '';
   if (existsSync(envPath)) {
     envContent = readFileSync(envPath, 'utf-8');
@@ -27,7 +23,7 @@ function saveCredentials(token: string, publicationUrl: string) {
     if (envContent) envContent += '\n';
   }
   envContent += `SUBSTACK_TOKEN=${token}\nSUBSTACK_PUBLICATION_URL=${publicationUrl}\n`;
-  writeFileSync(envPath, envContent);
+  writeFileSync(envPath, envContent, { mode: 0o600 });
 }
 
 function extractCookies(setCookieHeaders: string[]): { substackSid?: string; connectSid?: string } {
@@ -123,7 +119,7 @@ authCommand
         console.log(chalk.red(`Code verification failed: ${msg}`));
       } else {
         console.log(chalk.red('Login succeeded but cookies were not returned.'));
-        console.log(chalk.dim('Try: wrtr auth setup (manual cookie paste)'));
+        console.log(chalk.dim('Try: postcli-substack auth setup (manual cookie paste)'));
       }
       process.exit(1);
     }

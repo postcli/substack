@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { getClient, collectAsync } from '../../client.js';
+import { getClient, collectAsync, parsePositiveInt } from '../../client.js';
 import { formatPost, separator } from '../formatters.js';
 
 export const postsCommand = new Command('posts').description('Manage posts');
@@ -13,7 +13,7 @@ postsCommand
   .action(async (opts) => {
     try {
       const client = getClient();
-      const limit = parseInt(opts.limit);
+      const limit = parsePositiveInt(opts.limit, 'limit');
       let profile;
       if (opts.slug) {
         profile = await client.profileForSlug(opts.slug);
@@ -42,7 +42,8 @@ postsCommand
   .action(async (id) => {
     try {
       const client = getClient();
-      const post = await client.postForId(parseInt(id));
+      const postId = parsePositiveInt(id, 'post ID');
+      const post = await client.postForId(postId);
       console.log(chalk.bold(post.title));
       if (post.subtitle) console.log(chalk.dim(post.subtitle));
       console.log(chalk.gray(`Published: ${post.publishedAt.toLocaleDateString()}`));

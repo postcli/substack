@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { getClient, collectAsync } from '../../client.js';
+import { getClient, collectAsync, parsePositiveInt } from '../../client.js';
 import { formatComment, separator } from '../formatters.js';
 
 export const commentsCommand = new Command('comments').description('Manage comments');
@@ -12,8 +12,9 @@ commentsCommand
   .action(async (postId, opts) => {
     try {
       const client = getClient();
-      const post = await client.postForId(parseInt(postId));
-      const limit = parseInt(opts.limit);
+      const id = parsePositiveInt(postId, 'post ID');
+      const limit = parsePositiveInt(opts.limit, 'limit');
+      const post = await client.postForId(id);
       const comments = await collectAsync(post.comments({ limit }), limit);
       if (comments.length === 0) {
         console.log(chalk.dim('No comments found.'));
@@ -36,7 +37,8 @@ commentsCommand
   .action(async (postId, text) => {
     try {
       const client = getClient();
-      const post = await client.postForId(parseInt(postId));
+      const id = parsePositiveInt(postId, 'post ID');
+      const post = await client.postForId(id);
       const comment = await post.addComment({ body: text });
       console.log(chalk.green(`Comment added! ID: ${comment.id}`));
     } catch (err: any) {

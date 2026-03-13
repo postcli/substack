@@ -6,10 +6,15 @@ import crypto from 'crypto';
 import Database from 'better-sqlite3';
 
 const CHROME_COOKIE_PATHS = [
+  // Linux
   join(homedir(), '.config/google-chrome/Default/Cookies'),
   join(homedir(), '.config/google-chrome/Profile 1/Cookies'),
   join(homedir(), '.config/chromium/Default/Cookies'),
   join(homedir(), 'snap/chromium/common/chromium/Default/Cookies'),
+  // macOS
+  join(homedir(), 'Library/Application Support/Google/Chrome/Default/Cookies'),
+  join(homedir(), 'Library/Application Support/Google/Chrome/Profile 1/Cookies'),
+  join(homedir(), 'Library/Application Support/Chromium/Default/Cookies'),
 ];
 
 function findCookieDb(): string | null {
@@ -20,6 +25,19 @@ function findCookieDb(): string | null {
 }
 
 function getEncryptionKey(): Buffer {
+  const isMac = process.platform === 'darwin';
+  if (isMac) {
+    try {
+      const password = execSync(
+        'security find-generic-password -s "Chrome Safe Storage" -w',
+        { encoding: 'utf-8', timeout: 5000 }
+      ).trim();
+      return crypto.pbkdf2Sync(password, 'saltysalt', 1003, 16, 'sha1');
+    } catch {
+      return crypto.pbkdf2Sync('peanuts', 'saltysalt', 1003, 16, 'sha1');
+    }
+  }
+  // Linux
   try {
     const password = execSync('secret-tool lookup application chrome', {
       encoding: 'utf-8',

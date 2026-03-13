@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { getClient, collectAsync } from '../../client.js';
+import { getClient, collectAsync, parsePositiveInt } from '../../client.js';
 
 export const socialCommand = new Command('social').description('Social actions');
 
@@ -10,9 +10,10 @@ socialCommand
   .action(async (postId) => {
     try {
       const client = getClient();
-      const post = await client.postForId(parseInt(postId));
+      const id = parsePositiveInt(postId, 'post ID');
+      const post = await client.postForId(id);
       await post.like();
-      console.log(chalk.green(`Liked post #${postId}`));
+      console.log(chalk.green(`Liked post #${id}`));
     } catch (err: any) {
       console.error(chalk.red(`Error: ${err.message}`));
       process.exit(1);
@@ -27,7 +28,7 @@ socialCommand
     try {
       const client = getClient();
       const profile = await client.ownProfile();
-      const limit = parseInt(opts.limit);
+      const limit = parsePositiveInt(opts.limit, 'limit');
       const following = await collectAsync(profile.following({ limit }), limit);
       if (following.length === 0) {
         console.log(chalk.dim('Not following anyone.'));

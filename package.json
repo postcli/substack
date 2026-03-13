@@ -1,7 +1,7 @@
 {
   "name": "@postcli/substack",
   "version": "0.1.0",
-  "description": "Substack CLI and MCP Server - read posts, publish notes, manage your Substack from the terminal",
+  "description": "Substack plugin for PostCLI - read posts, publish notes, manage your Substack from the terminal",
   "type": "module",
   "license": "AGPL-3.0-only",
   "repository": {
@@ -10,9 +10,28 @@
   },
   "homepage": "https://github.com/postcli/substack",
   "bugs": "https://github.com/postcli/substack/issues",
-  "keywords": ["substack", "cli", "mcp", "notes", "publishing"],
+  "keywords": ["substack", "cli", "mcp", "notes", "publishing", "postcli", "ai", "agents"],
+  "main": "./dist/plugin.js",
+  "types": "./dist/plugin.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/plugin.js",
+      "types": "./dist/plugin.d.ts"
+    },
+    "./client": {
+      "import": "./dist/client.js",
+      "types": "./dist/client.d.ts"
+    },
+    "./mcp": {
+      "import": "./dist/mcp/index.js",
+      "types": "./dist/mcp/index.d.ts"
+    }
+  },
   "bin": {
     "postcli-substack": "./dist/cli/index.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "files": ["dist", "README.md", "LICENSE"],
   "scripts": {
@@ -20,10 +39,19 @@
     "cli": "tsx src/cli/index.ts",
     "mcp": "tsx src/mcp/index.ts",
     "dev:mcp": "npx @modelcontextprotocol/inspector tsx src/mcp/index.ts",
+    "test": "node --import tsx --test test/**/*.test.ts",
     "prepublishOnly": "npm run build"
   },
   "publishConfig": {
     "access": "public"
+  },
+  "peerDependencies": {
+    "@postcli/cli": "^0.1.0"
+  },
+  "peerDependenciesMeta": {
+    "@postcli/cli": {
+      "optional": false
+    }
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",

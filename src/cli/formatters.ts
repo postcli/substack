@@ -26,7 +26,7 @@ export function formatNote(note: {
   publishedAt: Date;
 }): string {
   const preview = note.body.length > 200 ? note.body.slice(0, 200) + '...' : note.body;
-  return `${chalk.dim(`#${note.id}`)} ${chalk.cyan(`@${note.author.handle}`)} ${chalk.gray(formatDate(note.publishedAt))}\n  ${preview}\n  ${chalk.red('♥')} ${note.likesCount}`;
+  return `${chalk.dim(`#${note.id}`)} ${chalk.cyan(`@${note.author.handle}`)} ${chalk.gray(formatDate(note.publishedAt))}\n  ${preview}\n  Likes: ${note.likesCount}`;
 }
 
 export function formatProfile(profile: {
