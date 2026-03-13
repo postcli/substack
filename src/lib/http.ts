@@ -99,7 +99,7 @@ export class HttpClient {
   }
 }
 
-function buildUrl(base: string, params?: Record<string, any>): string {
+export function buildUrl(base: string, params?: Record<string, any>): string {
   if (!params) return base;
   const url = new URL(base);
   for (const [k, v] of Object.entries(params)) {
@@ -108,7 +108,7 @@ function buildUrl(base: string, params?: Record<string, any>): string {
   return url.toString();
 }
 
-function extractSubdomain(publicationUrl: string): string {
+export function extractSubdomain(publicationUrl: string): string {
   // https://substack.com/@ahlert → ahlert
   const handleMatch = publicationUrl.match(/@(\w+)/);
   if (handleMatch) return handleMatch[1];

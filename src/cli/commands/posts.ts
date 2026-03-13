@@ -143,3 +143,50 @@ postsCommand
       process.exit(1);
     }
   });
+
+postsCommand
+  .command('react <post-id>')
+  .description('React to a post (heart)')
+  .option('-s, --subdomain <sub>', 'Publication subdomain (defaults to own)')
+  .action(async function (this: Command, postId, opts) {
+    const json = this.optsWithGlobals().json;
+    try {
+      const client = getClient();
+      const id = parsePositiveInt(postId, 'post ID');
+      await client.reactToPost(id, opts.subdomain);
+
+      if (json) {
+        console.log(JSON.stringify({ ok: true }));
+        return;
+      }
+
+      console.log(chalk.green('Reacted!'));
+    } catch (err: any) {
+      if (json) { console.log(JSON.stringify({ error: err.message })); process.exit(1); }
+      console.error(chalk.red(`Error: ${err.message}`));
+      process.exit(1);
+    }
+  });
+
+postsCommand
+  .command('restack <post-id>')
+  .description('Restack a post')
+  .action(async function (this: Command, postId) {
+    const json = this.optsWithGlobals().json;
+    try {
+      const client = getClient();
+      const id = parsePositiveInt(postId, 'post ID');
+      await client.restackPost(id);
+
+      if (json) {
+        console.log(JSON.stringify({ ok: true }));
+        return;
+      }
+
+      console.log(chalk.green('Restacked!'));
+    } catch (err: any) {
+      if (json) { console.log(JSON.stringify({ error: err.message })); process.exit(1); }
+      console.error(chalk.red(`Error: ${err.message}`));
+      process.exit(1);
+    }
+  });

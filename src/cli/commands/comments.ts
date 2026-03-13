@@ -46,3 +46,50 @@ commentsCommand
       process.exit(1);
     }
   });
+
+commentsCommand
+  .command('add <post-id> <text>')
+  .description('Comment on a post')
+  .option('-s, --subdomain <sub>', 'Publication subdomain (defaults to own)')
+  .action(async function (this: Command, postId, text, opts) {
+    const json = this.optsWithGlobals().json;
+    try {
+      const client = getClient();
+      const id = parsePositiveInt(postId, 'post ID');
+      const result = await client.commentOnPost(id, text, opts.subdomain);
+
+      if (json) {
+        console.log(JSON.stringify(result));
+        return;
+      }
+
+      console.log(chalk.green(`Comment posted (id: ${result.id})`));
+    } catch (err: any) {
+      if (json) { console.log(JSON.stringify({ error: err.message })); process.exit(1); }
+      console.error(chalk.red(`Error: ${err.message}`));
+      process.exit(1);
+    }
+  });
+
+commentsCommand
+  .command('react <comment-id>')
+  .description('React to a comment (heart)')
+  .action(async function (this: Command, commentId) {
+    const json = this.optsWithGlobals().json;
+    try {
+      const client = getClient();
+      const id = parsePositiveInt(commentId, 'comment ID');
+      await client.reactToComment(id);
+
+      if (json) {
+        console.log(JSON.stringify({ ok: true }));
+        return;
+      }
+
+      console.log(chalk.green('Reacted!'));
+    } catch (err: any) {
+      if (json) { console.log(JSON.stringify({ error: err.message })); process.exit(1); }
+      console.error(chalk.red(`Error: ${err.message}`));
+      process.exit(1);
+    }
+  });

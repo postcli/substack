@@ -8,6 +8,41 @@ import type {
   SubstackFeedItem,
 } from './types.js';
 
+/** Convert plain text to ProseMirror document format used by Substack */
+export function textToProseMirror(text: string): Record<string, any> {
+  const paragraphs = text.split('\n\n').filter(Boolean);
+  const content = paragraphs.map((para) => {
+    // Handle bold **text**
+    const parts: any[] = [];
+    const regex = /\*\*(.+?)\*\*/g;
+    let lastIndex = 0;
+    let match;
+    while ((match = regex.exec(para)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push({ type: 'text', text: para.slice(lastIndex, match.index) });
+      }
+      parts.push({
+        type: 'text',
+        text: match[1],
+        marks: [{ type: 'bold' }],
+      });
+      lastIndex = match.index + match[0].length;
+    }
+    if (lastIndex < para.length) {
+      parts.push({ type: 'text', text: para.slice(lastIndex) });
+    }
+    if (parts.length === 0) {
+      parts.push({ type: 'text', text: para });
+    }
+    return { type: 'paragraph', content: parts };
+  });
+  return {
+    type: 'doc',
+    attrs: { schemaVersion: 'v1' },
+    content,
+  };
+}
+
 export interface SubstackClientConfig {
   token: string;
   publicationUrl: string;
@@ -124,6 +159,47 @@ export class SubstackClient {
     return (res.comments ?? []).map((c) => new Comment(c));
   }
 
+  /** Get a user's profile feed (their comments/notes) */
+  async getProfileFeed(userId: number, options?: {
+    cursor?: string;
+  }): Promise<{ items: SubstackFeedItem[]; nextCursor?: string }> {
+    const params: Record<string, any> = {};
+    if (options?.cursor) params.cursor = options.cursor;
+    const res = await this.http.globalGet<SubstackFeedResponse>(
+      `/reader/feed/profile/${userId}`,
+      params
+    );
+    return { items: res.items ?? [], nextCursor: res.nextCursor };
+  }
+
+  /** Get a single comment with its parent comments (ancestors) */
+  async getComment(commentId: number): Promise<{
+    comment: any;
+    parentComments: any[];
+  }> {
+    const res = await this.http.globalGet<any>(`/reader/comment/${commentId}`);
+    const item = res.item;
+    return {
+      comment: item.comment,
+      parentComments: item.parentComments ?? [],
+    };
+  }
+
+  /** Get replies to a comment (children threads) */
+  async getCommentReplies(commentId: number): Promise<{
+    rootComment: any;
+    branches: { comment: any; descendants: any[] }[];
+  }> {
+    const res = await this.http.globalGet<any>(`/reader/comment/${commentId}/replies`);
+    return {
+      rootComment: res.rootComment,
+      branches: (res.commentBranches ?? []).map((b: any) => ({
+        comment: b.comment,
+        descendants: b.descendantComments ?? [],
+      })),
+    };
+  }
+
   /** Get the authenticated user's reader feed (notes, posts, etc.) */
   async getFeed(options?: {
     tab?: string;
@@ -156,6 +232,78 @@ export class SubstackClient {
     }
 
     return notes;
+  }
+
+  // ── Write operations ──────────────────────────────────────
+
+  /** Publish a new note */
+  async publishNote(text: string, options?: {
+    replyMinimumRole?: string;
+  }): Promise<{ id: number }> {
+    const bodyJson = textToProseMirror(text);
+    const res = await this.http.globalPost<any>('/comment/feed', {
+      bodyJson,
+      tabId: 'for-you',
+      surface: 'feed',
+      replyMinimumRole: options?.replyMinimumRole ?? 'everyone',
+    });
+    return { id: res.id ?? res.comment?.id ?? 0 };
+  }
+
+  /** Reply to a note or comment */
+  async replyToNote(parentId: number, text: string): Promise<{ id: number }> {
+    const bodyJson = textToProseMirror(text);
+    const res = await this.http.globalPost<any>('/comment/feed', {
+      bodyJson,
+      parent_id: parentId,
+      tabId: 'for-you',
+      surface: 'feed',
+      replyMinimumRole: 'everyone',
+    });
+    return { id: res.id ?? res.comment?.id ?? 0 };
+  }
+
+  /** Comment on a post (plain text body, Substack converts to ProseMirror server-side) */
+  async commentOnPost(postId: number, text: string, subdomain?: string): Promise<{ id: number }> {
+    const res = await this.http.pubPost<any>(
+      `/post/${postId}/comment`,
+      { body: text },
+      subdomain
+    );
+    return { id: res.id ?? 0 };
+  }
+
+  /** React to a post (heart) */
+  async reactToPost(postId: number, subdomain?: string): Promise<void> {
+    await this.http.pubPost<any>(
+      `/post/${postId}/reaction`,
+      { reaction: '\u2764' },
+      subdomain
+    );
+  }
+
+  /** React to a comment/note */
+  async reactToComment(commentId: number): Promise<void> {
+    await this.http.globalPost<any>(
+      `/comment/${commentId}/reaction`,
+      { reaction: '\u2764', publication_id: null, tabId: 'for-you' }
+    );
+  }
+
+  /** Restack a post */
+  async restackPost(postId: number): Promise<void> {
+    await this.http.globalPost<any>(
+      '/restack/feed',
+      { postId, commentId: null, tabId: 'for-you', surface: 'feed' }
+    );
+  }
+
+  /** Restack a note/comment */
+  async restackNote(commentId: number): Promise<void> {
+    await this.http.globalPost<any>(
+      '/restack/feed',
+      { postId: null, commentId, tabId: 'for-you', surface: 'feed' }
+    );
   }
 
   /** Get the default subdomain for this client */
