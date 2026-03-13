@@ -6,7 +6,7 @@
   "license": "AGPL-3.0-only",
   "repository": {
     "type": "git",
-    "url": "https://github.com/postcli/substack.git"
+    "url": "git+https://github.com/postcli/substack.git"
   },
   "homepage": "https://github.com/postcli/substack",
   "bugs": "https://github.com/postcli/substack/issues",
@@ -37,7 +37,7 @@
     }
   },
   "bin": {
-    "postcli-substack": "./dist/cli/index.js"
+    "postcli-substack": "dist/cli/index.js"
   },
   "engines": {
     "node": ">=18.0.0"
