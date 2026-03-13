@@ -30,7 +30,7 @@ export const tools: ToolDef[] = [
     handler: async () => {
       const client = getClient();
       const p = await client.ownProfile();
-      return json({ id: p.id, name: p.name, handle: p.handle, url: p.url, bio: p.bio });
+      return json({ id: p.id, name: p.name, handle: p.handle, url: p.url, bio: p.bio, avatarUrl: p.avatarUrl });
     },
   },
   {
@@ -40,7 +40,7 @@ export const tools: ToolDef[] = [
     handler: async ({ slug }) => {
       const client = getClient();
       const p = await client.profileForSlug(slug);
-      return json({ id: p.id, name: p.name, handle: p.handle, url: p.url, bio: p.bio });
+      return json({ id: p.id, name: p.name, handle: p.handle, url: p.url, bio: p.bio, avatarUrl: p.avatarUrl });
     },
   },
   {
@@ -58,6 +58,7 @@ export const tools: ToolDef[] = [
         id: p.id,
         title: p.title,
         subtitle: p.subtitle,
+        truncatedBody: p.truncatedBody,
         publishedAt: p.publishedAt,
       })));
     },
@@ -75,8 +76,11 @@ export const tools: ToolDef[] = [
         subtitle: p.subtitle,
         slug: p.slug,
         url: p.url,
+        coverImage: p.coverImage,
+        createdAt: p.createdAt,
         publishedAt: p.publishedAt,
         markdown: p.markdown,
+        htmlBody: p.htmlBody,
         reactions: p.reactions,
         restacks: p.restacks,
         tags: p.postTags,
@@ -191,6 +195,7 @@ export const tools: ToolDef[] = [
         name: p.name,
         handle: p.handle,
         url: p.url,
+        avatarUrl: p.avatarUrl,
       })));
     },
   },

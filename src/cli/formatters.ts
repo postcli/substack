@@ -12,10 +12,16 @@ export function formatPost(post: {
   id: number;
   title: string;
   subtitle?: string;
+  truncatedBody?: string;
   publishedAt: Date;
 }): string {
   const sub = post.subtitle ? ` - ${post.subtitle}` : '';
-  return `${chalk.dim(`#${post.id}`)} ${chalk.bold(post.title)}${chalk.dim(sub)}\n  ${chalk.gray(formatDate(post.publishedAt))}`;
+  let out = `${chalk.dim(`#${post.id}`)} ${chalk.bold(post.title)}${chalk.dim(sub)}\n  ${chalk.gray(formatDate(post.publishedAt))}`;
+  if (post.truncatedBody) {
+    const preview = post.truncatedBody.length > 200 ? post.truncatedBody.slice(0, 200) + '...' : post.truncatedBody;
+    out += `\n  ${chalk.dim(preview)}`;
+  }
+  return out;
 }
 
 export function formatNote(note: {
@@ -34,11 +40,13 @@ export function formatProfile(profile: {
   handle: string;
   url: string;
   bio?: string;
+  avatarUrl?: string;
 }): string {
   const lines = [
     `${chalk.bold(profile.name)} ${chalk.cyan(`@${profile.handle}`)}`,
     chalk.dim(profile.url),
   ];
+  if (profile.avatarUrl) lines.push(chalk.gray(`Avatar: ${profile.avatarUrl}`));
   if (profile.bio) lines.push(profile.bio);
   return lines.join('\n');
 }

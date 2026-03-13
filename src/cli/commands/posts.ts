@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { getClient, collectAsync, parsePositiveInt } from '../../client.js';
-import { formatPost, separator } from '../formatters.js';
+import { formatPost, formatDate, separator } from '../formatters.js';
 
 export const postsCommand = new Command('posts').description('Manage posts');
 
@@ -46,10 +46,15 @@ postsCommand
       const post = await client.postForId(postId);
       console.log(chalk.bold(post.title));
       if (post.subtitle) console.log(chalk.dim(post.subtitle));
-      console.log(chalk.gray(`Published: ${post.publishedAt.toLocaleDateString()}`));
+      console.log(chalk.gray(`Published: ${formatDate(post.publishedAt)}`));
+      if (post.createdAt && post.createdAt.getTime() !== post.publishedAt.getTime()) {
+        console.log(chalk.gray(`Created: ${formatDate(post.createdAt)}`));
+      }
       console.log(chalk.gray(`URL: ${post.url}`));
+      if (post.coverImage) console.log(chalk.gray(`Cover: ${post.coverImage}`));
       if (post.postTags?.length) console.log(chalk.gray(`Tags: ${post.postTags.join(', ')}`));
       if (post.reactions) console.log(chalk.gray(`Reactions: ${JSON.stringify(post.reactions)}`));
+      if (post.restacks) console.log(chalk.gray(`Restacks: ${post.restacks}`));
       console.log(separator());
       console.log(post.markdown || post.htmlBody || post.body);
     } catch (err: any) {
