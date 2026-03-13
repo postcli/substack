@@ -159,6 +159,124 @@ export const tools: ToolDef[] = [
     },
   },
   {
+    name: 'get_post_by_id',
+    description: 'Get a full post by its numeric ID (searches all your publications)',
+    schema: z.object({
+      id: z.number().describe('Post numeric ID'),
+      subdomain: z.string().optional().describe('Publication subdomain (defaults to searching all your publications)'),
+    }),
+    handler: async ({ id, subdomain }) => {
+      const client = getClient();
+      const p = await client.getPostById(id, subdomain);
+      return json({
+        id: p.id,
+        title: p.title,
+        subtitle: p.subtitle,
+        slug: p.slug,
+        canonicalUrl: p.canonicalUrl,
+        coverImage: p.coverImage,
+        publishedAt: p.publishedAt,
+        htmlBody: p.htmlBody,
+        description: p.description,
+        wordcount: p.wordcount,
+        reactionCount: p.reactionCount,
+        commentCount: p.commentCount,
+        restacks: p.restacks,
+        tags: p.postTags,
+        youtubeUrls: p.youtubeUrls,
+        authors: p.authors,
+      });
+    },
+  },
+  {
+    name: 'publish_note',
+    description: 'Publish a new note on Substack. Supports basic markdown (**bold**).',
+    schema: z.object({
+      text: z.string().describe('Note content text'),
+    }),
+    handler: async ({ text }) => {
+      const client = getClient();
+      const result = await client.publishNote(text);
+      return json({ ok: true, id: result.id });
+    },
+  },
+  {
+    name: 'reply_to_note',
+    description: 'Reply to a note or comment',
+    schema: z.object({
+      note_id: z.number().describe('ID of the note to reply to'),
+      text: z.string().describe('Reply text'),
+    }),
+    handler: async ({ note_id, text }) => {
+      const client = getClient();
+      const result = await client.replyToNote(note_id, text);
+      return json({ ok: true, id: result.id });
+    },
+  },
+  {
+    name: 'comment_on_post',
+    description: 'Comment on a post',
+    schema: z.object({
+      post_id: z.number().describe('Post ID'),
+      text: z.string().describe('Comment text'),
+      subdomain: z.string().optional().describe('Publication subdomain (defaults to own)'),
+    }),
+    handler: async ({ post_id, text, subdomain }) => {
+      const client = getClient();
+      const result = await client.commentOnPost(post_id, text, subdomain);
+      return json({ ok: true, id: result.id });
+    },
+  },
+  {
+    name: 'react_to_post',
+    description: 'React to a post (heart/like)',
+    schema: z.object({
+      post_id: z.number().describe('Post ID'),
+      subdomain: z.string().optional().describe('Publication subdomain (defaults to own)'),
+    }),
+    handler: async ({ post_id, subdomain }) => {
+      const client = getClient();
+      await client.reactToPost(post_id, subdomain);
+      return json({ ok: true });
+    },
+  },
+  {
+    name: 'react_to_comment',
+    description: 'React to a comment or note (heart/like)',
+    schema: z.object({
+      comment_id: z.number().describe('Comment or note ID'),
+    }),
+    handler: async ({ comment_id }) => {
+      const client = getClient();
+      await client.reactToComment(comment_id);
+      return json({ ok: true });
+    },
+  },
+  {
+    name: 'restack_post',
+    description: 'Restack (share) a post to your feed',
+    schema: z.object({
+      post_id: z.number().describe('Post ID'),
+    }),
+    handler: async ({ post_id }) => {
+      const client = getClient();
+      await client.restackPost(post_id);
+      return json({ ok: true });
+    },
+  },
+  {
+    name: 'restack_note',
+    description: 'Restack (share) a note to your feed',
+    schema: z.object({
+      note_id: z.number().describe('Note/comment ID'),
+    }),
+    handler: async ({ note_id }) => {
+      const client = getClient();
+      await client.restackNote(note_id);
+      return json({ ok: true });
+    },
+  },
+  {
     name: 'get_feed',
     description: 'Get your Substack reader feed (notes, posts, etc.)',
     schema: z.object({
