@@ -1,6 +1,6 @@
 {
   "name": "@postcli/substack",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Substack plugin for PostCLI - read posts, publish notes, manage your Substack from the terminal",
   "type": "module",
   "license": "AGPL-3.0-only",
