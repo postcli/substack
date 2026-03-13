@@ -52,19 +52,11 @@
     "cli": "tsx src/cli/index.ts",
     "mcp": "tsx src/mcp/index.ts",
     "dev:mcp": "npx @modelcontextprotocol/inspector tsx src/mcp/index.ts",
-    "test": "node --import tsx --test test/**/*.test.ts",
+    "test": "node --import tsx --test test/*.test.ts test/**/*.test.ts",
     "prepublishOnly": "npm run build"
   },
   "publishConfig": {
     "access": "public"
-  },
-  "peerDependencies": {
-    "@postcli/cli": "^0.1.0"
-  },
-  "peerDependenciesMeta": {
-    "@postcli/cli": {
-      "optional": false
-    }
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",
@@ -72,12 +64,18 @@
     "chalk": "^5.4.1",
     "commander": "^13.1.0",
     "dotenv": "^16.5.0",
+    "ink": "^6.8.0",
+    "marked": "^17.0.4",
+    "marked-terminal": "^7.3.0",
+    "react": "^19.2.4",
     "turndown": "^7.2.2",
     "zod": "^3.25.67"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
+    "@types/marked-terminal": "^6.1.1",
     "@types/node": "^22.15.0",
+    "@types/react": "^19.2.14",
     "@types/turndown": "^5.0.6",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3"

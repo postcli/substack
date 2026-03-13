@@ -6,6 +6,7 @@ import { notesCommand } from './commands/notes.js';
 import { commentsCommand } from './commands/comments.js';
 import { profileCommand } from './commands/profile.js';
 import { socialCommand } from './commands/social.js';
+import { autoCommand } from './commands/auto.js';
 
 // Handle --mcp before commander parses (MCP server stays alive, no subcommand needed)
 if (process.argv.includes('--mcp')) {
@@ -28,6 +29,16 @@ if (process.argv.includes('--mcp')) {
   program.addCommand(commentsCommand);
   program.addCommand(profileCommand);
   program.addCommand(socialCommand);
+  program.addCommand(autoCommand);
+
+  program
+    .command('tui')
+    .description('Interactive terminal UI')
+    .action(async () => {
+      const { getClient } = await import('../client.js');
+      const { startTui } = await import('./tui/index.js');
+      startTui(getClient());
+    });
 
   program.parse();
 }
