@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { getClient, collectAsync } from '../client.js';
+import { getClient } from '../client.js';
 
 export interface ToolDef {
   name: string;
@@ -25,116 +25,113 @@ export const tools: ToolDef[] = [
   },
   {
     name: 'get_own_profile',
-    description: 'Get your own Substack profile',
+    description: 'Get your own Substack profile with publications list',
     schema: z.object({}),
     handler: async () => {
       const client = getClient();
       const p = await client.ownProfile();
-      return json({ id: p.id, name: p.name, handle: p.handle, url: p.url, bio: p.bio, avatarUrl: p.avatarUrl });
+      return json(p.toData());
     },
   },
   {
     name: 'get_profile',
-    description: 'Get a Substack profile by slug',
-    schema: z.object({ slug: z.string().describe('Profile slug/handle') }),
-    handler: async ({ slug }) => {
+    description: 'Get a Substack profile by subdomain (e.g. "nicolascole77")',
+    schema: z.object({ subdomain: z.string().describe('Publication subdomain') }),
+    handler: async ({ subdomain }) => {
       const client = getClient();
-      const p = await client.profileForSlug(slug);
-      return json({ id: p.id, name: p.name, handle: p.handle, url: p.url, bio: p.bio, avatarUrl: p.avatarUrl });
+      const p = await client.profileForSubdomain(subdomain);
+      return json(p.toData());
     },
   },
   {
     name: 'list_posts',
-    description: 'List posts from a Substack publication',
+    description: 'List posts. By default fetches from all your publications merged by date. Use subdomain to fetch from a specific publication.',
     schema: z.object({
-      slug: z.string().optional().describe('Profile slug (defaults to own profile)'),
+      subdomain: z.string().optional().describe('Specific publication subdomain (omit to fetch from all your publications)'),
       limit: z.number().optional().default(10).describe('Max posts to return'),
+      offset: z.number().optional().default(0).describe('Offset for pagination'),
     }),
-    handler: async ({ slug, limit }) => {
+    handler: async ({ subdomain, limit, offset }) => {
       const client = getClient();
-      const profile = slug ? await client.profileForSlug(slug) : await client.ownProfile();
-      const posts = await collectAsync(profile.posts({ limit }), limit);
-      return json(posts.map((p) => ({
-        id: p.id,
-        title: p.title,
-        subtitle: p.subtitle,
-        truncatedBody: p.truncatedBody,
-        publishedAt: p.publishedAt,
-      })));
+      let posts;
+      if (subdomain) {
+        posts = await client.listPosts({ subdomain, limit, offset });
+      } else {
+        const profile = await client.ownProfile();
+        const subs = profile.publications.map((p) => p.subdomain);
+        const results = await Promise.all(
+          subs.map((sub) => client.listPosts({ subdomain: sub, limit, offset }))
+        );
+        posts = results.flat().sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime()).slice(0, limit);
+      }
+      return json(
+        posts.map((p) => ({
+          id: p.id,
+          title: p.title,
+          subtitle: p.subtitle,
+          slug: p.slug,
+          truncatedBody: p.truncatedBody,
+          publishedAt: p.publishedAt,
+          canonicalUrl: p.canonicalUrl,
+          coverImage: p.coverImage,
+          wordcount: p.wordcount,
+          reactionCount: p.reactionCount,
+          commentCount: p.commentCount,
+          restacks: p.restacks,
+          authors: p.authors,
+        }))
+      );
     },
   },
   {
     name: 'get_post',
-    description: 'Get a full post by ID with markdown content',
-    schema: z.object({ id: z.number().describe('Post ID') }),
-    handler: async ({ id }) => {
+    description: 'Get a full post by slug with HTML content, authors, and YouTube embeds',
+    schema: z.object({
+      slug: z.string().describe('Post slug (from URL)'),
+      subdomain: z.string().optional().describe('Publication subdomain (defaults to own)'),
+    }),
+    handler: async ({ slug, subdomain }) => {
       const client = getClient();
-      const p = await client.postForId(id);
+      const p = await client.getPost(slug, subdomain);
       return json({
         id: p.id,
         title: p.title,
         subtitle: p.subtitle,
         slug: p.slug,
-        url: p.url,
+        canonicalUrl: p.canonicalUrl,
         coverImage: p.coverImage,
-        createdAt: p.createdAt,
         publishedAt: p.publishedAt,
-        markdown: p.markdown,
         htmlBody: p.htmlBody,
-        reactions: p.reactions,
+        description: p.description,
+        wordcount: p.wordcount,
+        reactionCount: p.reactionCount,
+        commentCount: p.commentCount,
         restacks: p.restacks,
         tags: p.postTags,
+        youtubeUrls: p.youtubeUrls,
+        authors: p.authors,
       });
     },
   },
   {
     name: 'list_notes',
-    description: 'List notes from a Substack profile',
+    description: 'List notes from your Substack reader feed',
     schema: z.object({
-      slug: z.string().optional().describe('Profile slug (defaults to own profile)'),
       limit: z.number().optional().default(10).describe('Max notes to return'),
     }),
-    handler: async ({ slug, limit }) => {
+    handler: async ({ limit }) => {
       const client = getClient();
-      const profile = slug ? await client.profileForSlug(slug) : await client.ownProfile();
-      const notes = await collectAsync(profile.notes({ limit }), limit);
-      return json(notes.map((n) => ({
-        id: n.id,
-        body: n.body,
-        likesCount: n.likesCount,
-        author: n.author,
-        publishedAt: n.publishedAt,
-      })));
-    },
-  },
-  {
-    name: 'get_note',
-    description: 'Get a specific note by ID',
-    schema: z.object({ id: z.number().describe('Note ID') }),
-    handler: async ({ id }) => {
-      const client = getClient();
-      const n = await client.noteForId(id);
-      return json({
-        id: n.id,
-        body: n.body,
-        likesCount: n.likesCount,
-        author: n.author,
-        publishedAt: n.publishedAt,
-      });
-    },
-  },
-  {
-    name: 'publish_note',
-    description: 'Publish a new note on Substack',
-    schema: z.object({
-      content: z.string().describe('Note content (supports markdown)'),
-      attachment: z.string().optional().describe('Optional URL to attach'),
-    }),
-    handler: async ({ content, attachment }) => {
-      const client = getClient();
-      const profile = await client.ownProfile();
-      const result = await profile.publishNote(content, { attachment });
-      return json({ success: true, id: result.id });
+      const notes = await client.listNotes({ limit });
+      return json(
+        notes.map((n) => ({
+          id: n.id,
+          body: n.body,
+          author: n.author,
+          publishedAt: n.publishedAt,
+          reactions: n.reactions,
+          childrenCount: n.childrenCount,
+        }))
+      );
     },
   },
   {
@@ -142,61 +139,50 @@ export const tools: ToolDef[] = [
     description: 'List comments on a post',
     schema: z.object({
       post_id: z.number().describe('Post ID'),
+      subdomain: z.string().optional().describe('Publication subdomain (defaults to own)'),
       limit: z.number().optional().default(20).describe('Max comments to return'),
     }),
-    handler: async ({ post_id, limit }) => {
+    handler: async ({ post_id, subdomain, limit }) => {
       const client = getClient();
-      const post = await client.postForId(post_id);
-      const comments = await collectAsync(post.comments({ limit }), limit);
-      return json(comments.map((c) => ({
-        id: c.id,
-        body: c.body,
-        isAdmin: c.isAdmin,
-      })));
+      const comments = await client.listComments(post_id, { subdomain, limit });
+      return json(
+        comments.map((c) => ({
+          id: c.id,
+          body: c.body,
+          authorName: c.authorName,
+          authorId: c.authorId,
+          date: c.date,
+          reactions: c.reactions,
+          childrenCount: c.childrenCount,
+        }))
+      );
     },
   },
   {
-    name: 'comment_on_post',
-    description: 'Add a comment to a post',
+    name: 'get_feed',
+    description: 'Get your Substack reader feed (notes, posts, etc.)',
     schema: z.object({
-      post_id: z.number().describe('Post ID'),
-      text: z.string().describe('Comment text'),
+      tab: z
+        .string()
+        .optional()
+        .describe('Feed tab: "for-you", "subscribed", or a category slug'),
     }),
-    handler: async ({ post_id, text }) => {
+    handler: async ({ tab }) => {
       const client = getClient();
-      const post = await client.postForId(post_id);
-      const comment = await post.addComment({ body: text });
-      return json({ success: true, id: comment.id });
-    },
-  },
-  {
-    name: 'like_post',
-    description: 'Like a post',
-    schema: z.object({ id: z.number().describe('Post ID') }),
-    handler: async ({ id }) => {
-      const client = getClient();
-      const post = await client.postForId(id);
-      await post.like();
-      return json({ success: true, postId: id });
-    },
-  },
-  {
-    name: 'list_following',
-    description: 'List profiles you follow',
-    schema: z.object({
-      limit: z.number().optional().default(20).describe('Max profiles to return'),
-    }),
-    handler: async ({ limit }) => {
-      const client = getClient();
-      const profile = await client.ownProfile();
-      const following = await collectAsync(profile.following({ limit }), limit);
-      return json(following.map((p) => ({
-        id: p.id,
-        name: p.name,
-        handle: p.handle,
-        url: p.url,
-        avatarUrl: p.avatarUrl,
-      })));
+      const feed = await client.getFeed({ tab });
+      return json({
+        items: feed.items.map((i) => ({
+          entityKey: i.entity_key,
+          type: i.type,
+          contextType: i.context?.type,
+          timestamp: i.context?.timestamp,
+          authorName: i.context?.users?.[0]?.name,
+          authorHandle: i.context?.users?.[0]?.handle,
+          body: i.comment?.body?.slice(0, 200),
+          postTitle: i.post?.title,
+        })),
+        nextCursor: feed.nextCursor,
+      });
     },
   },
 ];

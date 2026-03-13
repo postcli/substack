@@ -1,44 +1,61 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { getClient, collectAsync, parsePositiveInt } from '../../client.js';
+import { getClient } from '../../client.js';
+import { formatDate } from '../formatters.js';
 
-export const socialCommand = new Command('social').description('Social actions');
-
-socialCommand
-  .command('like <post-id>')
-  .description('Like a post')
-  .action(async (postId) => {
-    try {
-      const client = getClient();
-      const id = parsePositiveInt(postId, 'post ID');
-      const post = await client.postForId(id);
-      await post.like();
-      console.log(chalk.green(`Liked post #${id}`));
-    } catch (err: any) {
-      console.error(chalk.red(`Error: ${err.message}`));
-      process.exit(1);
-    }
-  });
+export const socialCommand = new Command('feed').description('Reader feed');
 
 socialCommand
-  .command('following')
-  .description('List profiles you follow')
-  .option('-l, --limit <n>', 'Number of profiles', '20')
-  .action(async (opts) => {
+  .command('list')
+  .description('Show your reader feed')
+  .option('-t, --tab <tab>', 'Feed tab: for-you, subscribed, or category slug')
+  .action(async function (this: Command, opts) {
+    const json = this.optsWithGlobals().json;
     try {
       const client = getClient();
-      const profile = await client.ownProfile();
-      const limit = parsePositiveInt(opts.limit, 'limit');
-      const following = await collectAsync(profile.following({ limit }), limit);
-      if (following.length === 0) {
-        console.log(chalk.dim('Not following anyone.'));
+      const feed = await client.getFeed({ tab: opts.tab });
+
+      if (json) {
+        console.log(JSON.stringify({
+          items: feed.items.map((i) => ({
+            entityKey: i.entity_key,
+            type: i.type,
+            contextType: i.context?.type,
+            timestamp: i.context?.timestamp,
+            authorName: i.context?.users?.[0]?.name,
+            authorHandle: i.context?.users?.[0]?.handle,
+            body: i.comment?.body,
+            postTitle: i.post?.title,
+            postSlug: i.post?.slug,
+          })),
+          nextCursor: feed.nextCursor,
+        }, null, 2));
         return;
       }
-      for (const p of following) {
-        console.log(`${chalk.bold(p.name)} ${chalk.cyan(`@${p.handle}`)} ${chalk.dim(p.url)}`);
+
+      if (feed.items.length === 0) {
+        console.log(chalk.dim('Feed is empty.'));
+        return;
       }
-      console.log(chalk.dim(`\n${following.length} profile(s)`));
+      for (const item of feed.items) {
+        const author = item.context?.users?.[0];
+        const ts = item.context?.timestamp ? new Date(item.context.timestamp) : null;
+        const type = `${item.type}${item.context?.type ? ':' + item.context.type : ''}`;
+        let line = `${chalk.dim(type)} `;
+        if (author) line += `${chalk.cyan(`@${author.handle}`)} `;
+        if (ts) line += chalk.gray(formatDate(ts));
+        console.log(line);
+        if (item.comment?.body) {
+          const body = item.comment.body.length > 200 ? item.comment.body.slice(0, 200) + '...' : item.comment.body;
+          console.log(`  ${body}`);
+        }
+        if (item.post?.title) {
+          console.log(`  ${chalk.bold(item.post.title)}`);
+        }
+        console.log(chalk.dim('─'.repeat(40)));
+      }
     } catch (err: any) {
+      if (json) { console.log(JSON.stringify({ error: err.message })); process.exit(1); }
       console.error(chalk.red(`Error: ${err.message}`));
       process.exit(1);
     }

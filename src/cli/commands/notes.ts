@@ -1,26 +1,33 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { getClient, collectAsync, parsePositiveInt } from '../../client.js';
+import { getClient, parsePositiveInt } from '../../client.js';
 import { formatNote, separator } from '../formatters.js';
 
 export const notesCommand = new Command('notes').description('Manage notes');
 
 notesCommand
   .command('list')
-  .description('List notes')
+  .description('List notes from your feed')
   .option('-l, --limit <n>', 'Number of notes', '10')
-  .option('-s, --slug <slug>', 'Profile slug (defaults to own profile)')
-  .action(async (opts) => {
+  .action(async function (this: Command, opts) {
+    const json = this.optsWithGlobals().json;
     try {
       const client = getClient();
       const limit = parsePositiveInt(opts.limit, 'limit');
-      let profile;
-      if (opts.slug) {
-        profile = await client.profileForSlug(opts.slug);
-      } else {
-        profile = await client.ownProfile();
+      const notes = await client.listNotes({ limit });
+
+      if (json) {
+        console.log(JSON.stringify(notes.map((n) => ({
+          id: n.id,
+          body: n.body,
+          author: n.author,
+          publishedAt: n.publishedAt,
+          reactions: n.reactions,
+          childrenCount: n.childrenCount,
+        })), null, 2));
+        return;
       }
-      const notes = await collectAsync(profile.notes({ limit }), limit);
+
       if (notes.length === 0) {
         console.log(chalk.dim('No notes found.'));
         return;
@@ -31,40 +38,7 @@ notesCommand
       }
       console.log(chalk.dim(`${notes.length} note(s)`));
     } catch (err: any) {
-      console.error(chalk.red(`Error: ${err.message}`));
-      process.exit(1);
-    }
-  });
-
-notesCommand
-  .command('get <id>')
-  .description('Get note by ID')
-  .action(async (id) => {
-    try {
-      const client = getClient();
-      const noteId = parsePositiveInt(id, 'note ID');
-      const note = await client.noteForId(noteId);
-      console.log(`${chalk.cyan(`@${note.author.handle}`)} ${chalk.gray(note.publishedAt.toLocaleDateString())}`);
-      console.log(note.body);
-      console.log(`\nLikes: ${note.likesCount}`);
-    } catch (err: any) {
-      console.error(chalk.red(`Error: ${err.message}`));
-      process.exit(1);
-    }
-  });
-
-notesCommand
-  .command('publish <text>')
-  .description('Publish a new note')
-  .option('--link <url>', 'Attach a link URL')
-  .action(async (text, opts) => {
-    try {
-      const client = getClient();
-      const profile = await client.ownProfile();
-      const attachment = opts.link || undefined;
-      const result = await profile.publishNote(text, { attachment });
-      console.log(chalk.green(`Note published! ID: ${result.id}`));
-    } catch (err: any) {
+      if (json) { console.log(JSON.stringify({ error: err.message })); process.exit(1); }
       console.error(chalk.red(`Error: ${err.message}`));
       process.exit(1);
     }

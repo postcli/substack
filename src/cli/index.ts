@@ -17,7 +17,10 @@ if (process.argv.includes('--mcp')) {
   const program = new Command()
     .name('postcli-substack')
     .description('Substack CLI and MCP Server')
-    .version(process.env.npm_package_version || '0.1.0');
+    .version(process.env.npm_package_version || '0.1.0')
+    .option('-j, --json', 'Output as JSON (for scripts and AI agents)')
+    .enablePositionalOptions()
+    .passThroughOptions();
 
   program.addCommand(authCommand);
   program.addCommand(postsCommand);

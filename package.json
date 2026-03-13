@@ -10,7 +10,16 @@
   },
   "homepage": "https://github.com/postcli/substack",
   "bugs": "https://github.com/postcli/substack/issues",
-  "keywords": ["substack", "cli", "mcp", "notes", "publishing", "postcli", "ai", "agents"],
+  "keywords": [
+    "substack",
+    "cli",
+    "mcp",
+    "notes",
+    "publishing",
+    "postcli",
+    "ai",
+    "agents"
+  ],
   "main": "./dist/plugin.js",
   "types": "./dist/plugin.d.ts",
   "exports": {
@@ -33,7 +42,11 @@
   "engines": {
     "node": ">=18.0.0"
   },
-  "files": ["dist", "README.md", "LICENSE"],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc",
     "cli": "tsx src/cli/index.ts",
@@ -59,12 +72,13 @@
     "chalk": "^5.4.1",
     "commander": "^13.1.0",
     "dotenv": "^16.5.0",
-    "substack-api": "^3.2.0",
+    "turndown": "^7.2.2",
     "zod": "^3.25.67"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^22.15.0",
+    "@types/turndown": "^5.0.6",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3"
   }

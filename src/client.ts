@@ -1,4 +1,4 @@
-import { SubstackClient } from 'substack-api';
+import { SubstackClient } from './lib/substack.js';
 import dotenv from 'dotenv';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';

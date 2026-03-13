@@ -1,7 +1,9 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { readFileSync, writeFileSync, existsSync, mkdirSync, chmodSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, unlinkSync } from 'fs';
+import { resolve } from 'path';
 import { createClient, getClient, getConfigDir, getEnvPath } from '../../client.js';
+import { SubstackClient } from '../../lib/substack.js';
 import { grabSubstackCookies } from '../chrome-cookies.js';
 import readline from 'readline';
 
@@ -39,12 +41,64 @@ function extractCookies(setCookieHeaders: string[]): { substackSid?: string; con
   return { substackSid, connectSid };
 }
 
+async function completeLogin(token: string, options?: { subdomain?: string; lliToken?: string }) {
+  // Verify token works
+  console.log(chalk.dim('Verifying token...'));
+  const valid = await SubstackClient.verifyToken(token);
+  if (!valid) throw new Error('Token is invalid or expired');
+
+  let subdomain = options?.subdomain?.trim();
+
+  // Auto-discover via substack.lli JWT
+  if (!subdomain && options?.lliToken) {
+    console.log(chalk.dim('Auto-discovering profile...'));
+    const discovered = await SubstackClient.discoverProfile(token, options.lliToken);
+    if (discovered) {
+      if (discovered.handle) {
+        subdomain = discovered.handle;
+        console.log(chalk.dim(`Found: ${discovered.name} (@${discovered.handle})`));
+        if (discovered.publications.length > 1) {
+          console.log(chalk.dim(`Publications: ${discovered.publications.map((p) => p.subdomain).join(', ')}`));
+        }
+      } else if (discovered.publications.length > 0) {
+        subdomain = discovered.publications[0].subdomain;
+        console.log(chalk.dim(`Found publication: ${discovered.publications[0].name} (${subdomain})`));
+      } else if (discovered.subscriptions.length > 0) {
+        console.log(chalk.dim(`Profile not fully set up (no handle). Subscriptions found: ${discovered.subscriptions.map((s) => s.subdomain).join(', ')}`));
+      } else {
+        console.log(chalk.dim('Profile found but no handle or publications. Manual input needed.'));
+      }
+    } else {
+      console.log(chalk.dim('Could not auto-discover profile.'));
+    }
+  }
+
+  // Fallback: prompt interactively
+  if (!subdomain) {
+    if (!process.stdin.isTTY) {
+      throw new Error('No TTY available. Use --subdomain flag for non-interactive login.');
+    }
+    subdomain = await ask('Your publication subdomain (e.g. "myname" from myname.substack.com): ');
+  }
+  if (!subdomain?.trim()) throw new Error('Subdomain cannot be empty');
+
+  const pubUrl = `https://${subdomain.trim()}.substack.com`;
+  const client = createClient(token, pubUrl);
+  const profile = await client.ownProfile();
+
+  saveCredentials(token, pubUrl);
+  console.log(chalk.green(`\nLogged in as ${chalk.bold(profile.name)} (@${profile.handle})`));
+  console.log(chalk.dim(`Publication: ${pubUrl}`));
+  console.log(chalk.green('Credentials saved to .env'));
+}
+
 export const authCommand = new Command('auth').description('Authentication management');
 
 authCommand
   .command('login')
   .description('Login via email code or Chrome cookies')
-  .action(async () => {
+  .option('-s, --subdomain <sub>', 'Publication subdomain (for non-interactive/agent use)')
+  .action(async (opts) => {
     // Try to grab cookies from Chrome first
     console.log(chalk.dim('Checking Chrome for existing Substack session...'));
     const grabbed = grabSubstackCookies();
@@ -54,14 +108,8 @@ authCommand
         connect_sid: grabbed.connectSid,
       })).toString('base64');
 
-      console.log(chalk.dim('Fetching profile...'));
       try {
-        const client = createClient(token, 'https://substack.com');
-        const profile = await client.ownProfile();
-        saveCredentials(token, profile.url);
-        console.log(chalk.green(`\nLogged in as ${chalk.bold(profile.name)} (@${profile.handle})`));
-        console.log(chalk.dim(`Publication: ${profile.url}`));
-        console.log(chalk.green('Credentials saved to .env'));
+        await completeLogin(token, { subdomain: opts.subdomain, lliToken: grabbed.lliToken });
         return;
       } catch {
         console.log(chalk.dim('Chrome session found but expired. Falling back to email login.\n'));
@@ -129,16 +177,7 @@ authCommand
       connect_sid: connectSid,
     })).toString('base64');
 
-    // Derive publication URL from profile
-    console.log(chalk.dim('\nFetching profile...'));
-    const client = createClient(token, 'https://substack.com');
-    const profile = await client.ownProfile();
-    const publicationUrl = profile.url;
-
-    saveCredentials(token, publicationUrl);
-    console.log(chalk.green(`\nLogged in as ${chalk.bold(profile.name)} (@${profile.handle})`));
-    console.log(chalk.dim(`Publication: ${publicationUrl}`));
-    console.log(chalk.green('Credentials saved to .env'));
+    await completeLogin(token, { subdomain: opts.subdomain });
   });
 
 authCommand
@@ -188,5 +227,46 @@ authCommand
     } catch (err: any) {
       console.error(chalk.red(`Error: ${err.message}`));
       process.exit(1);
+    }
+  });
+
+authCommand
+  .command('logout')
+  .description('Remove stored credentials')
+  .action(async () => {
+    let removed = false;
+
+    // Clean credentials from all known .env locations
+    const paths = [getEnvPath()];
+    // Also check project-local .env (dev fallback)
+    const localEnv = resolve(process.cwd(), '.env');
+    if (localEnv !== paths[0]) paths.push(localEnv);
+
+    for (const envPath of paths) {
+      if (!existsSync(envPath)) continue;
+
+      const content = readFileSync(envPath, 'utf-8');
+      if (!content.includes('SUBSTACK_TOKEN') && !content.includes('SUBSTACK_PUBLICATION_URL')) continue;
+
+      const cleaned = content
+        .split('\n')
+        .filter((line) => !line.startsWith('SUBSTACK_TOKEN=') && !line.startsWith('SUBSTACK_PUBLICATION_URL='))
+        .join('\n')
+        .trim();
+
+      if (cleaned) {
+        writeFileSync(envPath, cleaned + '\n', { mode: 0o600 });
+      } else {
+        unlinkSync(envPath);
+      }
+
+      console.log(chalk.dim(`Cleaned: ${envPath}`));
+      removed = true;
+    }
+
+    if (removed) {
+      console.log(chalk.green('Substack credentials removed.'));
+    } else {
+      console.log(chalk.dim('No credentials found.'));
     }
   });

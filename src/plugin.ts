@@ -9,7 +9,10 @@ import { startMcpServer } from './mcp/index.js';
 
 export function registerCommands(program: Command): void {
   const substack = new Command('substack')
-    .description('Substack - posts, notes, comments, profile');
+    .description('Substack - posts, notes, comments, profile')
+    .option('-j, --json', 'Output as JSON (for scripts and AI agents)')
+    .enablePositionalOptions()
+    .passThroughOptions();
 
   substack.addCommand(authCommand);
   substack.addCommand(postsCommand);

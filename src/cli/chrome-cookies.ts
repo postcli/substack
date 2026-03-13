@@ -75,6 +75,7 @@ function decrypt(encryptedValue: Buffer, key: Buffer): string {
 export interface ChromeCookieResult {
   substackSid: string;
   connectSid?: string;
+  lliToken?: string;
 }
 
 export function grabSubstackCookies(): ChromeCookieResult | null {
@@ -86,22 +87,28 @@ export function grabSubstackCookies(): ChromeCookieResult | null {
 
   try {
     const rows = db.prepare(
-      `SELECT name, encrypted_value FROM cookies
+      `SELECT name, encrypted_value, value FROM cookies
        WHERE host_key LIKE '%substack.com'
-       AND name IN ('substack.sid', 'connect.sid')`
-    ).all() as { name: string; encrypted_value: Buffer }[];
+       AND name IN ('substack.sid', 'connect.sid', 'substack.lli')`
+    ).all() as { name: string; encrypted_value: Buffer; value: string }[];
 
     let substackSid = '';
     let connectSid = '';
+    let lliToken = '';
 
     for (const row of rows) {
-      const value = decrypt(row.encrypted_value, key);
-      if (row.name === 'substack.sid') substackSid = value;
-      if (row.name === 'connect.sid') connectSid = value;
+      if (row.name === 'substack.lli') {
+        // lli is a JWT, may not be encrypted
+        lliToken = row.value || decrypt(row.encrypted_value, key);
+      } else {
+        const value = decrypt(row.encrypted_value, key);
+        if (row.name === 'substack.sid') substackSid = value;
+        if (row.name === 'connect.sid') connectSid = value;
+      }
     }
 
     if (substackSid) {
-      return { substackSid, connectSid: connectSid || substackSid };
+      return { substackSid, connectSid: connectSid || substackSid, lliToken: lliToken || undefined };
     }
     return null;
   } finally {
