@@ -31,7 +31,7 @@ Read posts. Publish notes. Automate engagement. Power AI agents.
 <br/>
 
 <p align="center">
-  <img src="assets/terminal-demo.svg" alt="CLI Demo" width="780" />
+  <img src="assets/demo.gif" alt="CLI Demo" width="780" />
 </p>
 
 <br/>
