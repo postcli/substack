@@ -7,12 +7,14 @@ export function useAsync<T>(fn: () => Promise<T>, deps: unknown[] = []) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const cacheRef = useRef<Map<string, T>>(new Map());
+  const fnRef = useRef(fn);
+  fnRef.current = fn;
   const depsKey = JSON.stringify(deps);
 
   const reload = useCallback(() => {
     setLoading(true);
     setError(null);
-    fn()
+    fnRef.current()
       .then((result) => {
         cacheRef.current.set(depsKey, result);
         setData(result);
@@ -112,7 +114,10 @@ export function useScroll(totalLines: number, opts?: { active?: boolean }) {
     setScrollOffset(0);
   }, [totalLines]);
 
-  return { scrollOffset, viewportHeight, maxScroll };
+  // Clamp scrollOffset if maxScroll shrinks (e.g. terminal resize)
+  const clampedOffset = Math.min(scrollOffset, maxScroll);
+
+  return { scrollOffset: clampedOffset, viewportHeight, maxScroll };
 }
 
 /** Get terminal dimensions */

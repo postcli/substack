@@ -1,7 +1,13 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
+import readline from 'readline';
 import { getClient, parsePositiveInt } from '../../client.js';
 import { AutomationEngine } from '../automations/engine.js';
+
+function ask(question: string): Promise<string> {
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  return new Promise((res) => rl.question(question, (answer) => { rl.close(); res(answer.trim()); }));
+}
 
 export const autoCommand = new Command('auto').description('Manage automations');
 
@@ -53,7 +59,35 @@ autoCommand
     }
 
     const preset = presets[presetIdx];
-    const auto = engine.create(name, preset.trigger, preset.actions);
+    const trigger = { ...preset.trigger };
+
+    if ('requiresInput' in preset && preset.requiresInput === 'handles') {
+      const input = await ask('Handles to watch (comma-separated, e.g. "nicolascole,dickiebush"): ');
+      const handles = input.split(',').map((h) => h.trim().replace(/^@/, '')).filter(Boolean);
+      if (!handles.length) {
+        engine.close();
+        const msg = 'At least one handle is required';
+        if (json) { console.log(JSON.stringify({ error: msg })); process.exit(1); }
+        console.error(chalk.red(msg));
+        process.exit(1);
+      }
+      (trigger as any).handles = handles;
+    }
+
+    if ('requiresInput' in preset && preset.requiresInput === 'subdomains') {
+      const input = await ask('Publication subdomains to watch (comma-separated, e.g. "lfraga,stratechery"): ');
+      const subdomains = input.split(',').map((s) => s.trim()).filter(Boolean);
+      if (!subdomains.length) {
+        engine.close();
+        const msg = 'At least one subdomain is required';
+        if (json) { console.log(JSON.stringify({ error: msg })); process.exit(1); }
+        console.error(chalk.red(msg));
+        process.exit(1);
+      }
+      (trigger as any).subdomains = subdomains;
+    }
+
+    const auto = engine.create(name, trigger, preset.actions);
     engine.close();
 
     if (json) {

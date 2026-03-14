@@ -206,24 +206,39 @@ export class AutomationEngine {
 
   private async handleRepliesBack(auto: Automation, errors: string[]): Promise<number> {
     let executed = 0;
-    const feed = await this.client.getFeed({});
-    const replies = feed.items.filter(
-      (i) => i.type === 'comment' && i.context?.type === 'note' && i.comment?.children_count
+    // Fetch own profile feed to find notes that have new replies
+    const profile = await this.client.ownProfile();
+    const profileFeed = await this.client.getProfileFeed(profile.id);
+    const myNotes = profileFeed.items.filter(
+      (i) => i.type === 'comment' && i.context?.typeBucket === 'notes' && i.comment
     );
 
-    for (const item of replies) {
+    for (const item of myNotes) {
       const noteId = item.comment?.id;
-      if (!noteId || this.isProcessed(noteId, auto.id)) continue;
+      if (!noteId || !(item.comment?.children_count ?? 0)) continue;
 
-      for (const action of auto.actions) {
-        try {
-          await this.executeAction(action, { noteId, item });
-          executed++;
-        } catch (err: any) {
-          errors.push(`${action.type}: ${err.message}`);
+      // Check each reply (child) on this note
+      try {
+        const repliesData = await this.client.getCommentReplies(noteId);
+        for (const branch of repliesData.branches) {
+          const replyId = branch.comment?.id;
+          if (!replyId || this.isProcessed(replyId, auto.id)) continue;
+          // Skip own replies
+          if (branch.comment?.user_id === profile.id) continue;
+
+          for (const action of auto.actions) {
+            try {
+              await this.executeAction(action, { noteId: replyId, item });
+              executed++;
+            } catch (err: any) {
+              errors.push(`${action.type}: ${err.message}`);
+            }
+          }
+          this.markProcessed(replyId, auto.id);
         }
+      } catch {
+        // replies fetch may fail, skip
       }
-      this.markProcessed(noteId, auto.id);
     }
     return executed;
   }
@@ -287,7 +302,25 @@ export class AutomationEngine {
     ctx: { noteId?: number; postId?: number; subdomain?: string; item?: any }
   ) {
     switch (action.type) {
-      case 'like_back':
+      case 'like_back': {
+        // Find the liker's user ID from the feed item context, then like their latest note
+        const likerId = ctx.item?.context?.users?.[0]?.id;
+        if (likerId) {
+          try {
+            const likerFeed = await this.client.getProfileFeed(likerId);
+            const likerNote = likerFeed.items.find(
+              (i: any) => i.type === 'comment' && i.context?.typeBucket === 'notes' && i.comment?.id
+            );
+            if (likerNote?.comment?.id) {
+              await this.client.reactToComment(likerNote.comment.id);
+            }
+          } catch {
+            // fallback: like the note that was liked (better than nothing)
+            if (ctx.noteId) await this.client.reactToComment(ctx.noteId);
+          }
+        }
+        break;
+      }
       case 'like_note':
         if (ctx.noteId) await this.client.reactToComment(ctx.noteId);
         break;
@@ -299,7 +332,7 @@ export class AutomationEngine {
         else if (ctx.postId) await this.client.restackPost(ctx.postId);
         break;
       case 'follow':
-        // Follow not yet implemented in client, skip silently
+        console.warn('[auto] "follow" action is not yet implemented, skipping');
         break;
       case 'log':
         // No-op for now
@@ -362,16 +395,18 @@ export class AutomationEngine {
     },
     {
       name: 'Auto-like notes from handles',
-      trigger: { type: 'new_note_from' as const, handles: [''] },
+      trigger: { type: 'new_note_from' as const, handles: [] },
       actions: [{ type: 'like_note' as const }],
+      requiresInput: 'handles' as const,
     },
     {
       name: 'Auto-like + restack new posts',
-      trigger: { type: 'new_post_from' as const, subdomains: [''] },
+      trigger: { type: 'new_post_from' as const, subdomains: [] },
       actions: [
         { type: 'like_note' as const },
         { type: 'restack' as const },
       ],
+      requiresInput: 'subdomains' as const,
     },
   ];
 }

@@ -140,9 +140,9 @@ function CommentListView({
     if (input === 'r') reload();
     if (input === 'o') {
       const url = `https://substack.com/@${item.authorHandle}/note/c-${item.id}`;
-      import('child_process').then(({ exec }) => {
+      import('child_process').then(({ execFile }) => {
         const cmd = process.platform === 'darwin' ? 'open' : 'xdg-open';
-        exec(`${cmd} "${url}"`);
+        execFile(cmd, [url]);
       });
     }
     if (input === 'l') {
@@ -296,6 +296,7 @@ function ThreadView({
       try {
         const repliesData = await client.getCommentReplies(commentId);
         for (const branch of repliesData.branches) {
+          if (!branch.comment) continue;
           replies.push({
             id: branch.comment.id,
             body: branch.comment.body ?? '',
@@ -386,9 +387,9 @@ function ThreadView({
       const root = thread[0];
       if (root) {
         const url = `https://substack.com/@${root.handle}/note/c-${commentId}`;
-        import('child_process').then(({ exec }) => {
+        import('child_process').then(({ execFile }) => {
           const cmd = process.platform === 'darwin' ? 'open' : 'xdg-open';
-          exec(`${cmd} "${url}"`);
+          execFile(cmd, [url]);
         });
       }
     }

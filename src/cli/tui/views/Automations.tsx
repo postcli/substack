@@ -175,7 +175,12 @@ function PresetsView({ engine, showToast, onDone }: PresetsViewProps) {
     }
     if (key.return) {
       const preset = presets[cursor];
-      engine.create(preset.name, preset.trigger, preset.actions);
+      const trigger = { ...preset.trigger };
+      if ('requiresInput' in preset) {
+        showToast('This preset requires CLI input. Use: postcli-substack auto create', 'error');
+        return;
+      }
+      engine.create(preset.name, trigger, preset.actions);
       showToast(`Created: ${preset.name}`);
       onDone();
     }

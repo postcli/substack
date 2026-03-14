@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="820" height="340" viewBox="0 0 820 340">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&amp;display=swap');
+      .t { font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 13px; }
+      .dim { fill: #6b7280; }
+      .w { fill: #e5e7eb; }
+      .g { fill: #34d399; }
+      .o { fill: #ea580c; }
+      .y { fill: #fbbf24; }
+      .b { fill: #60a5fa; }
+      .c { fill: #22d3ee; }
+      .p { fill: #a78bfa; }
+      .bold { font-weight: 700; }
+    </style>
+  </defs>
+
+  <!-- Window -->
+  <rect width="820" height="340" rx="10" fill="#0d1117"/>
+  <rect width="820" height="36" rx="10" fill="#161b22"/>
+  <rect y="26" width="820" height="10" fill="#161b22"/>
+
+  <!-- Traffic lights -->
+  <circle cx="20" cy="18" r="6" fill="#ff5f57"/>
+  <circle cx="40" cy="18" r="6" fill="#febc2e"/>
+  <circle cx="60" cy="18" r="6" fill="#28c840"/>
+  <text x="410" y="22" text-anchor="middle" class="t dim" font-size="12">Claude Code + MCP</text>
+
+  <!-- User prompt -->
+  <text y="62" class="t">
+    <tspan x="20" class="p bold">human</tspan>
+    <tspan class="w"> Like the last 3 notes from @nicolascole and reply</tspan>
+  </text>
+  <text y="82" class="t">
+    <tspan x="20" class="w">       to his most popular one with "Great insight!"</tspan>
+  </text>
+
+  <!-- Tool calls -->
+  <text y="112" class="t">
+    <tspan x="20" class="b bold">claude</tspan>
+    <tspan class="dim"> Calling </tspan>
+    <tspan class="o">list_notes</tspan>
+    <tspan class="dim"> { limit: 10 }</tspan>
+  </text>
+
+  <text y="142" class="t">
+    <tspan x="20" class="dim">        Found 3 notes from @nicolascole</tspan>
+  </text>
+
+  <text y="172" class="t">
+    <tspan x="20" class="b bold">claude</tspan>
+    <tspan class="dim"> Calling </tspan>
+    <tspan class="o">react_to_comment</tspan>
+    <tspan class="dim"> { comment_id: 227159971 }</tspan>
+  </text>
+  <text y="192" class="t">
+    <tspan x="20" class="b bold">claude</tspan>
+    <tspan class="dim"> Calling </tspan>
+    <tspan class="o">react_to_comment</tspan>
+    <tspan class="dim"> { comment_id: 227048832 }</tspan>
+  </text>
+  <text y="212" class="t">
+    <tspan x="20" class="b bold">claude</tspan>
+    <tspan class="dim"> Calling </tspan>
+    <tspan class="o">react_to_comment</tspan>
+    <tspan class="dim"> { comment_id: 226991455 }</tspan>
+  </text>
+
+  <text y="242" class="t">
+    <tspan x="20" class="b bold">claude</tspan>
+    <tspan class="dim"> Calling </tspan>
+    <tspan class="o">reply_to_note</tspan>
+    <tspan class="dim"> { note_id: 227159971, text: "Great insight!" }</tspan>
+  </text>
+
+  <!-- Result -->
+  <text y="282" class="t">
+    <tspan x="20" class="g bold">claude</tspan>
+    <tspan class="w"> Done. Liked 3 notes from @nicolascole and replied</tspan>
+  </text>
+  <text y="302" class="t">
+    <tspan x="20" class="w">        to note #227159971 (142 reactions, most popular).</tspan>
+  </text>
+
+  <!-- Cursor -->
+  <rect x="20" y="318" width="8" height="14" fill="#a78bfa">
+    <animate attributeName="opacity" values="1;0;1" dur="1.2s" repeatCount="indefinite"/>
+  </rect>
+</svg>

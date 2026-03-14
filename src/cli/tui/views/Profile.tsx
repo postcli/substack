@@ -17,9 +17,9 @@ export function ProfileView({ client }: Props) {
   useInput((input) => {
     if (input === 'o' && profile?.handle) {
       const url = `https://substack.com/@${profile.handle}`;
-      import('child_process').then(({ exec }) => {
+      import('child_process').then(({ execFile }) => {
         const cmd = process.platform === 'darwin' ? 'open' : 'xdg-open';
-        exec(`${cmd} "${url}"`);
+        execFile(cmd, [url]);
       });
     }
   });

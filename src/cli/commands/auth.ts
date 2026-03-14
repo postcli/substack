@@ -197,16 +197,16 @@ authCommand
       connect_sid: connectSid,
     })).toString('base64');
 
-    saveCredentials(token, publicationUrl);
-    console.log(chalk.green('\nCredentials saved to .env'));
-
     console.log('Testing connection...');
     try {
       const client = createClient(token, publicationUrl);
       const profile = await client.ownProfile();
-      console.log(chalk.green(`Connected as ${chalk.bold(profile.name)} (@${profile.handle})`));
+      saveCredentials(token, publicationUrl);
+      console.log(chalk.green(`\nConnected as ${chalk.bold(profile.name)} (@${profile.handle})`));
+      console.log(chalk.green('Credentials saved to .env'));
     } catch (err: any) {
       console.log(chalk.red(`Connection failed: ${err.message}`));
+      console.log(chalk.dim('Credentials were NOT saved.'));
     }
   });
 

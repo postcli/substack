@@ -40,9 +40,11 @@ describe('textToProseMirror', () => {
     assert.strictEqual(parts[2].marks, undefined);
   });
 
-  it('empty string produces empty content', () => {
+  it('empty string produces a single paragraph with a space (prevents API rejection)', () => {
     const doc = textToProseMirror('');
-    assert.strictEqual(doc.content.length, 0);
+    assert.strictEqual(doc.content.length, 1);
+    assert.strictEqual(doc.content[0].type, 'paragraph');
+    assert.strictEqual(doc.content[0].content[0].text, ' ');
   });
 
   it('all docs have type "doc" and attrs.schemaVersion "v1"', () => {

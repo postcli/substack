@@ -48,9 +48,9 @@ export function App({ client, engine }: AppProps) {
         setScreen({ type: 'list' });
       }
       if (input === 'o' && screen.type === 'post-detail') {
-        import('child_process').then(({ exec }) => {
+        import('child_process').then(({ execFile }) => {
           const cmd = process.platform === 'darwin' ? 'open' : 'xdg-open';
-          exec(`${cmd} "${screen.url}"`);
+          execFile(cmd, [screen.url]);
         });
       }
       return;

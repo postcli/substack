@@ -55,9 +55,9 @@ export function PostListView({ client, onSelect }: Props) {
     if (input === 'o' && items[cursor]) {
       const url = items[cursor].canonicalUrl;
       if (url) {
-        import('child_process').then(({ exec }) => {
+        import('child_process').then(({ execFile }) => {
           const cmd = process.platform === 'darwin' ? 'open' : 'xdg-open';
-          exec(`${cmd} "${url}"`);
+          execFile(cmd, [url]);
         });
       }
     }

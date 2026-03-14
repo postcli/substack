@@ -37,9 +37,9 @@ export function FeedView({ client, showToast }: Props) {
         }
       }
       if (url) {
-        import('child_process').then(({ exec }) => {
+        import('child_process').then(({ execFile }) => {
           const cmd = process.platform === 'darwin' ? 'open' : 'xdg-open';
-          exec(`${cmd} "${url}"`);
+          execFile(cmd, [url]);
         });
       }
     }

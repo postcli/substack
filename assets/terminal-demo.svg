@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="820" height="460" viewBox="0 0 820 460">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&amp;display=swap');
+      .term { font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace; font-size: 13px; }
+      .dim { fill: #6b7280; }
+      .white { fill: #e5e7eb; }
+      .green { fill: #34d399; }
+      .orange { fill: #ea580c; }
+      .yellow { fill: #fbbf24; }
+      .blue { fill: #60a5fa; }
+      .cyan { fill: #22d3ee; }
+      .gray { fill: #9ca3af; }
+      .bold { font-weight: 700; }
+    </style>
+  </defs>
+
+  <!-- Window -->
+  <rect width="820" height="460" rx="10" fill="#0d1117"/>
+  <rect width="820" height="36" rx="10" fill="#161b22"/>
+  <rect y="26" width="820" height="10" fill="#161b22"/>
+
+  <!-- Traffic lights -->
+  <circle cx="20" cy="18" r="6" fill="#ff5f57"/>
+  <circle cx="40" cy="18" r="6" fill="#febc2e"/>
+  <circle cx="60" cy="18" r="6" fill="#28c840"/>
+
+  <!-- Title bar -->
+  <text x="410" y="22" text-anchor="middle" class="term dim" font-size="12">postcli-substack</text>
+
+  <!-- Line 1: command -->
+  <text y="62" class="term">
+    <tspan x="20" class="green">$</tspan>
+    <tspan class="white"> postcli-substack notes list --limit 5</tspan>
+  </text>
+
+  <!-- Line 2: blank -->
+
+  <!-- Line 3: header -->
+  <text y="92" class="term">
+    <tspan x="20" class="orange bold">ID</tspan>
+    <tspan x="140" class="orange bold">Author</tspan>
+    <tspan x="320" class="orange bold">Content</tspan>
+    <tspan x="660" class="orange bold">Reactions</tspan>
+  </text>
+
+  <!-- Separator -->
+  <line x1="20" y1="100" x2="800" y2="100" stroke="#2d333b" stroke-width="1"/>
+
+  <!-- Row 1 -->
+  <text y="120" class="term">
+    <tspan x="20" class="cyan">227159971</tspan>
+    <tspan x="140" class="yellow">@nicolascole</tspan>
+    <tspan x="320" class="white">The internet rewards people who think...</tspan>
+    <tspan x="660" class="green">142</tspan>
+  </text>
+
+  <!-- Row 2 -->
+  <text y="142" class="term">
+    <tspan x="20" class="cyan">227048832</tspan>
+    <tspan x="140" class="yellow">@danshipper</tspan>
+    <tspan x="320" class="white">AI writing tools are not the enemy of...</tspan>
+    <tspan x="660" class="green">89</tspan>
+  </text>
+
+  <!-- Row 3 -->
+  <text y="164" class="term">
+    <tspan x="20" class="cyan">226991455</tspan>
+    <tspan x="140" class="yellow">@lfraga</tspan>
+    <tspan x="320" class="white">O que acontece quando voce publica to...</tspan>
+    <tspan x="660" class="green">67</tspan>
+  </text>
+
+  <!-- Row 4 -->
+  <text y="186" class="term">
+    <tspan x="20" class="cyan">226874210</tspan>
+    <tspan x="140" class="yellow">@dickiebush</tspan>
+    <tspan x="320" class="white">Write 1 note a day for 30 days. Watch...</tspan>
+    <tspan x="660" class="green">234</tspan>
+  </text>
+
+  <!-- Row 5 -->
+  <text y="208" class="term">
+    <tspan x="20" class="cyan">226750188</tspan>
+    <tspan x="140" class="yellow">@paulgraham</tspan>
+    <tspan x="320" class="white">Most people don't really want to star...</tspan>
+    <tspan x="660" class="green">512</tspan>
+  </text>
+
+  <!-- Blank line -->
+
+  <!-- Second command -->
+  <text y="248" class="term">
+    <tspan x="20" class="green">$</tspan>
+    <tspan class="white"> postcli-substack notes publish "Building in public, day 47."</tspan>
+  </text>
+
+  <text y="278" class="term">
+    <tspan x="20" class="green">&#10004;</tspan>
+    <tspan class="white"> Published note </tspan>
+    <tspan class="cyan">#227201443</tspan>
+  </text>
+
+  <!-- Third command -->
+  <text y="318" class="term">
+    <tspan x="20" class="green">$</tspan>
+    <tspan class="white"> postcli-substack notes react 227159971</tspan>
+  </text>
+
+  <text y="348" class="term">
+    <tspan x="20" class="orange">&#9829;</tspan>
+    <tspan class="white"> Liked note </tspan>
+    <tspan class="cyan">#227159971</tspan>
+    <tspan class="dim"> by @nicolascole</tspan>
+  </text>
+
+  <!-- Fourth command -->
+  <text y="388" class="term">
+    <tspan x="20" class="green">$</tspan>
+    <tspan class="white"> postcli-substack auto run 1</tspan>
+  </text>
+
+  <text y="418" class="term">
+    <tspan x="20" class="yellow">&#9881;</tspan>
+    <tspan class="white"> Running </tspan>
+    <tspan class="orange bold">like-back</tspan>
+    <tspan class="dim"> ... processed 12 items, 8 new reactions</tspan>
+  </text>
+
+  <!-- Cursor -->
+  <rect x="20" y="438" width="8" height="16" fill="#ea580c">
+    <animate attributeName="opacity" values="1;0;1" dur="1.2s" repeatCount="indefinite"/>
+  </rect>
+</svg>

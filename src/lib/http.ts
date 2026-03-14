@@ -16,8 +16,16 @@ export class HttpClient {
 
   constructor(config: HttpClientConfig) {
     // Decode base64 token to get session cookies
-    const decoded = JSON.parse(Buffer.from(config.token, 'base64').toString());
-    this.cookies = `substack.sid=${decoded.substack_sid}; connect.sid=${decoded.connect_sid}`;
+    let decoded: { substack_sid?: string; connect_sid?: string };
+    try {
+      decoded = JSON.parse(Buffer.from(config.token, 'base64').toString());
+    } catch {
+      throw new Error('Invalid SUBSTACK_TOKEN: not a valid base64-encoded JSON. Run: postcli-substack auth login');
+    }
+    if (!decoded.substack_sid) {
+      throw new Error('Invalid SUBSTACK_TOKEN: missing substack_sid. Run: postcli-substack auth login');
+    }
+    this.cookies = `substack.sid=${decoded.substack_sid}; connect.sid=${decoded.connect_sid ?? decoded.substack_sid}`;
 
     // Extract subdomain from publication URL
     this.subdomain = extractSubdomain(config.publicationUrl);

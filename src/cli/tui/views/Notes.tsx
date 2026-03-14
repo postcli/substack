@@ -97,9 +97,9 @@ export function NotesView({ client, showToast }: Props) {
     if (input === 'r') reload();
     if (input === 'o') {
       const url = `https://substack.com/@${note.author.handle}/note/c-${note.id}`;
-      import('child_process').then(({ exec }) => {
+      import('child_process').then(({ execFile }) => {
         const cmd = process.platform === 'darwin' ? 'open' : 'xdg-open';
-        exec(`${cmd} "${url}"`);
+        execFile(cmd, [url]);
       });
     }
     if (input === 'l') {

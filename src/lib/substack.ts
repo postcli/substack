@@ -10,7 +10,10 @@ import type {
 
 /** Convert plain text to ProseMirror document format used by Substack */
 export function textToProseMirror(text: string): Record<string, any> {
-  const paragraphs = text.split('\n\n').filter(Boolean);
+  const paragraphs = text.split('\n\n').filter((s) => s.trim());
+  if (!paragraphs.length) {
+    paragraphs.push(text.trim() || ' ');
+  }
   const content = paragraphs.map((para) => {
     // Handle bold **text**
     const parts: any[] = [];
@@ -179,6 +182,9 @@ export class SubstackClient {
   }> {
     const res = await this.http.globalGet<any>(`/reader/comment/${commentId}`);
     const item = res.item;
+    if (!item?.comment) {
+      throw new Error(`Comment ${commentId} not found or inaccessible`);
+    }
     return {
       comment: item.comment,
       parentComments: item.parentComments ?? [],
@@ -413,7 +419,12 @@ export class SubstackClient {
   }
 
   private static makeAuthHeaders(token: string): Record<string, string> {
-    const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+    let decoded: { substack_sid?: string; connect_sid?: string };
+    try {
+      decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+    } catch {
+      throw new Error('Invalid token: not valid base64-encoded JSON');
+    }
     return {
       Cookie: `substack.sid=${decoded.substack_sid}; connect.sid=${decoded.connect_sid}`,
       Accept: 'application/json',

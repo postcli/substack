@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="820" height="420" viewBox="0 0 820 420">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&amp;display=swap');
+      .t { font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 13px; }
+      .t12 { font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 12px; }
+      .dim { fill: #6b7280; }
+      .w { fill: #e5e7eb; }
+      .g { fill: #34d399; }
+      .o { fill: #ea580c; }
+      .y { fill: #fbbf24; }
+      .b { fill: #60a5fa; }
+      .c { fill: #22d3ee; }
+      .gr { fill: #9ca3af; }
+      .bold { font-weight: 700; }
+      .bg-tab { fill: #1c1c1c; }
+      .bg-active { fill: #ea580c; }
+    </style>
+  </defs>
+
+  <!-- Window -->
+  <rect width="820" height="420" rx="10" fill="#0d1117"/>
+  <rect width="820" height="36" rx="10" fill="#161b22"/>
+  <rect y="26" width="820" height="10" fill="#161b22"/>
+
+  <!-- Traffic lights -->
+  <circle cx="20" cy="18" r="6" fill="#ff5f57"/>
+  <circle cx="40" cy="18" r="6" fill="#febc2e"/>
+  <circle cx="60" cy="18" r="6" fill="#28c840"/>
+  <text x="410" y="22" text-anchor="middle" class="t dim" font-size="12">postcli-substack tui</text>
+
+  <!-- Tab bar -->
+  <rect x="0" y="36" width="820" height="28" fill="#161b22"/>
+
+  <!-- Tabs -->
+  <rect x="15" y="40" width="70" height="20" rx="4" class="bg-active"/>
+  <text x="50" y="54" text-anchor="middle" class="t12 bold" fill="white">Notes</text>
+
+  <rect x="95" y="40" width="65" height="20" rx="4" class="bg-tab"/>
+  <text x="127" y="54" text-anchor="middle" class="t12 gr">Posts</text>
+
+  <rect x="170" y="40" width="95" height="20" rx="4" class="bg-tab"/>
+  <text x="217" y="54" text-anchor="middle" class="t12 gr">Comments</text>
+
+  <rect x="275" y="40" width="55" height="20" rx="4" class="bg-tab"/>
+  <text x="302" y="54" text-anchor="middle" class="t12 gr">Feed</text>
+
+  <rect x="340" y="40" width="55" height="20" rx="4" class="bg-tab"/>
+  <text x="367" y="54" text-anchor="middle" class="t12 gr">Auto</text>
+
+  <rect x="405" y="40" width="70" height="20" rx="4" class="bg-tab"/>
+  <text x="440" y="54" text-anchor="middle" class="t12 gr">Profile</text>
+
+  <!-- Sub-tabs -->
+  <text y="82" class="t12">
+    <tspan x="20" class="o bold">mine</tspan>
+    <tspan x="70" class="dim">|</tspan>
+    <tspan x="85" class="gr">following</tspan>
+    <tspan x="160" class="dim">|</tspan>
+    <tspan x="175" class="gr">general</tspan>
+  </text>
+
+  <line x1="0" y1="92" x2="820" y2="92" stroke="#2d333b" stroke-width="1"/>
+
+  <!-- Selected note (highlighted) -->
+  <rect x="4" y="96" width="812" height="52" rx="4" fill="#1a1a2e" stroke="#ea580c" stroke-width="1"/>
+
+  <text y="114" class="t">
+    <tspan x="16" class="o">&#9654;</tspan>
+    <tspan x="36" class="w bold">Building in public, day 47.</tspan>
+  </text>
+  <text y="134" class="t12">
+    <tspan x="36" class="y">@postcli</tspan>
+    <tspan x="130" class="dim">2 hours ago</tspan>
+    <tspan x="260" class="g">&#9829; 23</tspan>
+    <tspan x="310" class="b">&#9998; 4</tspan>
+    <tspan x="350" class="c">&#8635; 2</tspan>
+  </text>
+
+  <!-- Note 2 -->
+  <text y="174" class="t">
+    <tspan x="36" class="w">The internet rewards people who think in frameworks...</tspan>
+  </text>
+  <text y="194" class="t12">
+    <tspan x="36" class="y">@nicolascole</tspan>
+    <tspan x="160" class="dim">5 hours ago</tspan>
+    <tspan x="290" class="g">&#9829; 142</tspan>
+    <tspan x="350" class="b">&#9998; 31</tspan>
+    <tspan x="400" class="c">&#8635; 18</tspan>
+  </text>
+
+  <!-- Note 3 -->
+  <text y="234" class="t">
+    <tspan x="36" class="w">AI writing tools are not the enemy of good writing...</tspan>
+  </text>
+  <text y="254" class="t12">
+    <tspan x="36" class="y">@danshipper</tspan>
+    <tspan x="155" class="dim">8 hours ago</tspan>
+    <tspan x="290" class="g">&#9829; 89</tspan>
+    <tspan x="345" class="b">&#9998; 12</tspan>
+    <tspan x="395" class="c">&#8635; 7</tspan>
+  </text>
+
+  <!-- Note 4 -->
+  <text y="294" class="t">
+    <tspan x="36" class="w">Write 1 note a day for 30 days. Watch what happens.</tspan>
+  </text>
+  <text y="314" class="t12">
+    <tspan x="36" class="y">@dickiebush</tspan>
+    <tspan x="158" class="dim">1 day ago</tspan>
+    <tspan x="290" class="g">&#9829; 234</tspan>
+    <tspan x="350" class="b">&#9998; 45</tspan>
+    <tspan x="400" class="c">&#8635; 22</tspan>
+  </text>
+
+  <!-- Note 5 -->
+  <text y="354" class="t">
+    <tspan x="36" class="w">Most people don't really want to start a company...</tspan>
+  </text>
+  <text y="374" class="t12">
+    <tspan x="36" class="y">@paulgraham</tspan>
+    <tspan x="155" class="dim">2 days ago</tspan>
+    <tspan x="290" class="g">&#9829; 512</tspan>
+    <tspan x="350" class="b">&#9998; 87</tspan>
+    <tspan x="400" class="c">&#8635; 41</tspan>
+  </text>
+
+  <!-- Footer -->
+  <rect x="0" y="392" width="820" height="28" rx="0" fill="#161b22"/>
+  <text y="410" class="t12">
+    <tspan x="20" class="o bold">tab</tspan><tspan class="dim">=switch</tspan>
+    <tspan x="120" class="o bold">&#8593;&#8595;</tspan><tspan class="dim">=navigate</tspan>
+    <tspan x="240" class="o bold">enter</tspan><tspan class="dim">=thread</tspan>
+    <tspan x="360" class="o bold">r</tspan><tspan class="dim">=reply</tspan>
+    <tspan x="430" class="o bold">l</tspan><tspan class="dim">=like</tspan>
+    <tspan x="490" class="o bold">s</tspan><tspan class="dim">=restack</tspan>
+    <tspan x="580" class="o bold">o</tspan><tspan class="dim">=browser</tspan>
+    <tspan x="680" class="o bold">q</tspan><tspan class="dim">=quit</tspan>
+  </text>
+</svg>
