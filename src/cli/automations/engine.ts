@@ -50,10 +50,9 @@ export class AutomationEngine {
   private client: SubstackClient;
   private timers: Map<number, ReturnType<typeof setInterval>> = new Map();
 
-  constructor(client: SubstackClient) {
+  constructor(client: SubstackClient, dbPath?: string) {
     this.client = client;
-    const dbPath = resolve(getConfigDir(), 'automations.db');
-    this.db = new Database(dbPath);
+    this.db = new Database(dbPath ?? resolve(getConfigDir(), 'automations.db'));
     this.migrate();
   }
 
